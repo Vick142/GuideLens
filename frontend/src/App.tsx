@@ -124,9 +124,30 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>GuideLens</h1>
-        <p className="subtitle">Navigate with AI Vision</p>
+        <p className="subtitle">AI-Powered Vision Navigation</p>
+
+        <div className="header-status">
+          <div className="status-indicator">
+            <span className={`status-dot ${isRunning ? 'active' : ''}`}></span>
+            <span>{isRunning ? 'Camera Active' : 'Camera Ready'}</span>
+          </div>
+          <div className="status-indicator">
+            <span className={`status-dot ${!isMuted ? 'active' : ''}`}></span>
+            <span>{!isMuted ? 'Audio On' : 'Audio Off'}</span>
+          </div>
+        </div>
 
         <div className="header-controls">
+          <button
+            onClick={isRunning ? handleStopCamera : handleStartCamera}
+            className={`icon-btn ${isRunning ? 'danger' : 'success'}`}
+            title={isRunning ? 'Stop camera immediately' : 'Start camera'}
+            aria-label={isRunning ? 'Emergency stop: halts camera and audio' : 'Start camera to begin navigation'}
+            aria-pressed={isRunning}
+          >
+            {isRunning ? '⏹️' : '▶️'}
+          </button>
+
           <button
             onClick={toggleMute}
             className={`icon-btn ${isMuted ? 'muted' : ''}`}
@@ -136,59 +157,55 @@ function App() {
           >
             {isMuted ? '🔇' : '🔊'}
           </button>
-
-          <button
-            onClick={handleStopCamera}
-            disabled={!isRunning}
-            className="icon-btn danger"
-            title="Stop camera immediately"
-            aria-label="Emergency stop: halts camera and audio"
-          >
-            ⏹️
-          </button>
         </div>
       </header>
 
       <main className="app-main">
         {cameraError && (
           <div className="alert error" role="alert">
-            <strong>Camera Error:</strong> {cameraError}
+            <strong>📹 Camera Error:</strong> {cameraError}
           </div>
         )}
 
         {detectionError && (
           <div className="alert warning" role="alert">
-            <strong>Detection Error:</strong> {detectionError}
+            <strong>⚠️ Detection Error:</strong> {detectionError}
           </div>
         )}
 
-        <CameraView
-          videoRef={videoRef}
-          isRunning={isRunning}
-          onStartClick={handleStartCamera}
-          onStopClick={handleStopCamera}
-          error={cameraError}
-        />
+        <div className="content-section">
+          <CameraView
+            videoRef={videoRef}
+            isRunning={isRunning}
+            onStartClick={handleStartCamera}
+            onStopClick={handleStopCamera}
+            error={cameraError}
+          />
+        </div>
 
         {isRunning && (
           <>
-            <DetectionResults
-              result={detectionResult}
-              isDetecting={isDetecting}
-              onAnalyzeClick={handleAnalyzeScene}
-              error={detectionError}
-            />
+            <div className="content-section">
+              <DetectionResults
+                result={detectionResult}
+                isDetecting={isDetecting}
+                onAnalyzeClick={handleAnalyzeScene}
+                error={detectionError}
+              />
+            </div>
 
-            <GuidancePanel
-              detectionResult={detectionResult}
-              isSearching={isSearching}
-              onSearchChange={setSearchText}
-              onVoiceStart={handleVoiceStart}
-              onVoiceStop={stopListening}
-              isListening={isListening}
-              searchText={searchText}
-              voiceSupported={voiceSupported}
-            />
+            <div className="content-section">
+              <GuidancePanel
+                detectionResult={detectionResult}
+                isSearching={isSearching}
+                onSearchChange={setSearchText}
+                onVoiceStart={handleVoiceStart}
+                onVoiceStop={stopListening}
+                isListening={isListening}
+                searchText={searchText}
+                voiceSupported={voiceSupported}
+              />
+            </div>
           </>
         )}
 
