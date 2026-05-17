@@ -22,7 +22,12 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }))
 // CORS configuration
 app.use(
   cors({
-    origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'],
+    origin: [
+      FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://guide-lens-frontend.vercel.app',
+    ],
     credentials: true,
   })
 )
