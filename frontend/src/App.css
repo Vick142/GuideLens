@@ -1,0 +1,188 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+}
+
+.app-header {
+  background-color: #0a0a0a;
+  border-bottom: 3px solid #ffd700;
+  padding: 2rem 1rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.app-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  color: #ffd700;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  margin: 0 0 1.5rem 0;
+  color: #aaa;
+  font-size: 1.05rem;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.header-controls button {
+  min-width: 120px;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-footer {
+  background-color: #0a0a0a;
+  border-top: 2px solid #444;
+  padding: 1rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.app-footer p {
+  margin: 0.25rem 0;
+}
+
+.status {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.status h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.status p {
+  margin: 0.5rem 0;
+}
+
+.status.info {
+  background-color: #003366;
+  border: 2px solid #0066cc;
+  color: #cce5ff;
+}
+
+.status.warning {
+  background-color: #664400;
+  border: 2px solid #ff9900;
+  color: #ffe5cc;
+}
+
+.status.error {
+  background-color: #330000;
+  border: 2px solid #cc0000;
+  color: #ffcccc;
+}
+
+.status.success {
+  background-color: #003300;
+  border: 2px solid #00aa00;
+  color: #ccffcc;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .header-controls {
+    gap: 0.5rem;
+  }
+
+  .header-controls button {
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .header-controls {
+    flex-direction: column;
+  }
+
+  .header-controls button {
+    width: 100%;
+  }
+
+  .app-main {
+    padding: 0.5rem;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #ffd700;
+  outline-offset: 2px;
+}
+
+/* Dark mode support (always on) */
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

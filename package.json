@@ -1,0 +1,29 @@
+{
+  "name": "guidelens",
+  "version": "0.1.0",
+  "description": "AI-powered indoor navigation assistant for blind and visually impaired users",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend & npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
+    "preview": "npm run preview --workspace=frontend",
+    "start": "npm run start --workspace=backend",
+    "backend": "npm run dev --workspace=backend",
+    "frontend": "npm run dev --workspace=frontend"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "keywords": [
+    "accessibility",
+    "blind",
+    "visually-impaired",
+    "navigation",
+    "ai",
+    "object-detection",
+    "web-app"
+  ],
+  "author": "GuideLens Team",
+  "license": "MIT"
+}
