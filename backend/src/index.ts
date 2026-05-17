@@ -84,10 +84,10 @@ app.listen(PORT, () => {
   console.log(`║ 🌐 Frontend: ${FRONTEND_URL}`)
   console.log(`║ 📝 Env: ${process.env.NODE_ENV || 'development'}`)
 
-  if (!process.env.AZURE_VISION_ENDPOINT || !process.env.AZURE_VISION_KEY) {
-    console.log('║ ⚠️  Azure credentials not configured    ║')
+  if (!process.env.OPENAI_API_KEY) {
+    console.log('║ ⚠️  OpenAI API key not configured      ║')
   } else {
-    console.log('║ ✅ Azure Vision API configured         ║')
+    console.log('║ ✅ OpenAI Vision API configured        ║')
   }
 
   console.log('╚════════════════════════════════════════╝')

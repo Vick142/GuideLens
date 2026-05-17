@@ -1,6 +1,6 @@
 /**
- * Azure Computer Vision Service
- * Handles object detection using Azure Vision API
+ * OpenAI Vision Service
+ * Handles object detection and scene description using OpenAI Vision API
  */
 
 import axios from 'axios'
@@ -22,107 +22,100 @@ export interface VisionResponse {
   description?: string
 }
 
-class AzureVisionService {
-  private endpoint: string
+class OpenAIVisionService {
   private apiKey: string
-  private apiVersion = '2023-02-01-preview'
+  private apiUrl = 'https://api.openai.com/v1/chat/completions'
 
-  constructor(endpoint: string, apiKey: string) {
-    if (!endpoint || !apiKey) {
-      throw new Error('Azure Vision endpoint and API key are required')
+  constructor(apiKey: string) {
+    if (!apiKey) {
+      throw new Error('OpenAI API key is required')
     }
-    this.endpoint = endpoint.endsWith('/') ? endpoint : endpoint + '/'
     this.apiKey = apiKey
   }
 
   /**
-   * Analyze an image (base64 or URL) using Azure Vision API
+   * Analyze an image using OpenAI Vision API
    */
   async analyzeImage(imageData: string): Promise<VisionResponse> {
     try {
-      // Validate that we have image data
       if (!imageData || imageData.length === 0) {
         throw new Error('Image data is empty')
       }
 
-      // Determine if it's base64 or URL
-      let requestBody: any
-      const isBase64 = imageData.startsWith('data:image')
-
-      if (isBase64) {
-        // Convert data URL to binary
-        const base64String = imageData.split(',')[1]
-        const imageBuffer = Buffer.from(base64String, 'base64')
-
-        requestBody = imageBuffer
-      } else {
-        // Assume it's a URL
-        requestBody = { url: imageData }
+      // Ensure imageData is in proper base64 format
+      let base64Image = imageData
+      if (imageData.startsWith('data:image')) {
+        base64Image = imageData.split(',')[1]
       }
 
-      // Call Azure Vision API for analysis
       const response = await axios.post(
-        `${this.endpoint}vision/v${this.apiVersion}/analyze?visualFeatures=Objects,Tags,Description`,
-        requestBody,
+        this.apiUrl,
+        {
+          model: 'gpt-4-vision-preview',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: `You are an accessibility assistant for blind users. Analyze this image and provide:
+1. A brief scene description (1-2 sentences)
+2. List of detected objects/obstacles as JSON array
+3. Tags describing the scene type
+
+Respond in this exact JSON format:
+{
+  "description": "Natural description of the scene",
+  "objects": [
+    {"name": "object_name", "confidence": 0.95},
+    {"name": "obstacle_or_door", "confidence": 0.87}
+  ],
+  "tags": ["indoor", "room_type", "furniture"]
+}`,
+                },
+              ],
+            },
+          ],
+          max_tokens: 300,
+        },
         {
           headers: {
-            'Ocp-Apim-Subscription-Key': this.apiKey,
-            'Content-Type': isBase64 ? 'application/octet-stream' : 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
           },
         }
       )
 
-      // Parse and normalize the response
-      return this.normalizeResponse(response.data)
+      const content = response.data.choices[0].message.content
+      const parsed = JSON.parse(content)
+
+      return {
+        description: parsed.description,
+        objects: (parsed.objects || []).map((obj: any) => ({
+          name: obj.name,
+          confidence: obj.confidence || 0.75,
+        })),
+        tags: parsed.tags || [],
+      }
     } catch (error) {
-      console.error('Azure Vision API error:', error)
+      console.error('OpenAI Vision API error:', error)
 
       if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          throw new Error('Invalid Azure Vision API credentials')
+        if (error.response?.status === 401) {
+          throw new Error('Invalid OpenAI API key')
         } else if (error.response?.status === 400) {
           throw new Error('Invalid image data or request format')
         }
       }
 
-      throw new Error(`Azure Vision API failed: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(`Vision analysis failed: ${error instanceof Error ? error.message : String(error)}`)
     }
-  }
-
-  /**
-   * Normalize Azure Vision API response into our internal format
-   */
-  private normalizeResponse(azureResponse: any): VisionResponse {
-    const result: VisionResponse = {}
-
-    // Extract objects
-    if (azureResponse.objects && Array.isArray(azureResponse.objects)) {
-      result.objects = azureResponse.objects.map((obj: any) => ({
-        name: obj.objectName || obj.object || 'unknown',
-        confidence: obj.confidence || 0.5,
-        boundingBox: obj.rectangle
-          ? {
-              x: obj.rectangle.x / azureResponse.metadata?.width || 1280,
-              y: obj.rectangle.y / azureResponse.metadata?.height || 720,
-              w: obj.rectangle.w / azureResponse.metadata?.width || 1280,
-              h: obj.rectangle.h / azureResponse.metadata?.height || 720,
-            }
-          : undefined,
-      }))
-    }
-
-    // Extract tags
-    if (azureResponse.tags && Array.isArray(azureResponse.tags)) {
-      result.tags = azureResponse.tags.map((tag: any) => tag.name || tag)
-    }
-
-    // Extract description
-    if (azureResponse.description && azureResponse.description.captions) {
-      result.description = azureResponse.description.captions[0]?.text || ''
-    }
-
-    return result
   }
 }
 
-export default AzureVisionService
+export default OpenAIVisionService

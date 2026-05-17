@@ -1,29 +1,28 @@
 /**
  * Detection Route
- * POST /api/detect - Analyzes images using Azure Vision API
+ * POST /api/detect - Analyzes images using OpenAI Vision API
  */
 
 import { Router, Request, Response } from 'express'
-import AzureVisionService from '../services/azureVision'
+import OpenAIVisionService from '../services/azureVision'
 
 const router = Router()
 
-// Initialize Azure Vision service from environment
-const endpoint = process.env.AZURE_VISION_ENDPOINT
-const apiKey = process.env.AZURE_VISION_KEY
+// Initialize OpenAI Vision service from environment
+const apiKey = process.env.OPENAI_API_KEY
 
-if (!endpoint || !apiKey) {
-  console.warn('⚠️  WARNING: Azure Vision API credentials not configured')
-  console.warn('   Set AZURE_VISION_ENDPOINT and AZURE_VISION_KEY in backend/.env')
-  console.warn('   Detection API will return errors until credentials are added.')
+if (!apiKey) {
+  console.warn('⚠️  WARNING: OpenAI API key not configured')
+  console.warn('   Set OPENAI_API_KEY in backend/.env')
+  console.warn('   Vision analysis will fail until API key is added.')
 }
 
-let visionService: AzureVisionService | null = null
-if (endpoint && apiKey) {
+let visionService: OpenAIVisionService | null = null
+if (apiKey) {
   try {
-    visionService = new AzureVisionService(endpoint, apiKey)
+    visionService = new OpenAIVisionService(apiKey)
   } catch (error) {
-    console.error('Failed to initialize Azure Vision service:', error)
+    console.error('Failed to initialize OpenAI Vision service:', error)
   }
 }
 
@@ -39,15 +38,15 @@ router.post('/detect', async (req: Request, res: Response) => {
     if (!imageData || typeof imageData !== 'string') {
       return res.status(400).json({
         success: false,
-        error: 'Missing or invalid imageData. Expected base64 string or image URL.',
+        error: 'Missing or invalid imageData. Expected base64 string.',
       })
     }
 
-    // Check credentials
-    if (!visionService || !endpoint || !apiKey) {
+    // Check API key
+    if (!visionService || !apiKey) {
       return res.status(503).json({
         success: false,
-        error: 'Azure Vision API not configured. Set AZURE_VISION_ENDPOINT and AZURE_VISION_KEY in backend/.env',
+        error: 'OpenAI API not configured. Set OPENAI_API_KEY in backend/.env',
       })
     }
 

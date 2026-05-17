@@ -29,6 +29,23 @@ function App() {
   // Search/guidance state
   const [searchText, setSearchText] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [hasAutoExplained, setHasAutoExplained] = useState(false)
+
+  // Auto-explain scene when camera starts
+  useEffect(() => {
+    if (isRunning && !hasAutoExplained && !isDetecting) {
+      // Wait a moment for camera to stabilize
+      const timeout = setTimeout(async () => {
+        if (!isMuted) {
+          sayText('Camera started. Analyzing scene...')
+        }
+        const success = await analyzeFrame(videoRef.current)
+        setHasAutoExplained(true)
+      }, 1500)
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isRunning, hasAutoExplained, isDetecting, isMuted, sayText, analyzeFrame, videoRef])
 
   // Auto-announce results
   useEffect(() => {
@@ -41,8 +58,9 @@ function App() {
   const handleStartCamera = async () => {
     await startCamera()
     if (!cameraError) {
+      setHasAutoExplained(false)
       if (!isMuted) {
-        sayText('Camera is now active. Point at your surroundings.')
+        sayText('Camera is now active.')
       }
     }
   }
@@ -52,8 +70,9 @@ function App() {
     stopCamera()
     stopTalkingNow()
     clearResults()
+    setHasAutoExplained(false)
     if (!isMuted) {
-      sayText('Camera and audio have stopped.')
+      sayText('Camera stopped.')
     }
   }
 
@@ -65,7 +84,7 @@ function App() {
     try {
       const success = await analyzeFrame(videoRef.current)
       if (success && !isMuted) {
-        sayText('Scene analysis complete.')
+        sayText('Scene analyzed.')
       }
     } finally {
       setIsSearching(false)
@@ -80,10 +99,8 @@ function App() {
     try {
       const success = await analyzeFrame(videoRef.current)
       if (success && detectionResult?.objects) {
-        // Delay guidance generation so it comes after scene analysis
         setTimeout(() => {
           if (!isMuted) {
-            // The GuidancePanel will generate the proper guidance text
             sayText(`Searching for ${target}.`)
           }
         }, 500)
@@ -98,7 +115,7 @@ function App() {
     startListening((text) => {
       setSearchText(text)
       if (!isMuted) {
-        sayText(`You said: ${text}. Now searching.`)
+        sayText(`You said: ${text}.`)
       }
     })
   }
@@ -106,43 +123,42 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>🧭 GuideLens</h1>
-        <p className="subtitle">AI-Powered Navigation for the Blind & Visually Impaired</p>
+        <h1>GuideLens</h1>
+        <p className="subtitle">Navigate with AI Vision</p>
 
         <div className="header-controls">
           <button
             onClick={toggleMute}
+            className={`icon-btn ${isMuted ? 'muted' : ''}`}
             title={isMuted ? 'Unmute audio' : 'Mute audio'}
             aria-label={isMuted ? 'Audio is muted. Click to unmute' : 'Audio is enabled. Click to mute'}
             aria-pressed={isMuted}
           >
-            {isMuted ? '🔇 Unmute' : '🔊 Mute'}
+            {isMuted ? '🔇' : '🔊'}
           </button>
 
           <button
             onClick={handleStopCamera}
             disabled={!isRunning}
-            className="danger"
+            className="icon-btn danger"
             title="Stop camera immediately"
             aria-label="Emergency stop: halts camera and audio"
           >
-            🛑 STOP
+            ⏹️
           </button>
         </div>
       </header>
 
       <main className="app-main">
         {cameraError && (
-          <div className="status error" role="alert">
+          <div className="alert error" role="alert">
             <strong>Camera Error:</strong> {cameraError}
-            <p>Check your browser permissions and try refreshing the page.</p>
           </div>
         )}
 
         {detectionError && (
-          <div className="status warning" role="alert">
+          <div className="alert warning" role="alert">
             <strong>Detection Error:</strong> {detectionError}
-            <p>Ensure your API key is configured and try again.</p>
           </div>
         )}
 
@@ -177,18 +193,15 @@ function App() {
         )}
 
         {!isRunning && (
-          <div className="status info text-center">
+          <div className="alert info text-center">
             <h3>Ready to Navigate</h3>
-            <p>Click "Start Camera" above to begin. Ensure good lighting for best results.</p>
-            {!speechSupported && <p className="warning">Text-to-speech not available in this browser.</p>}
-            {!voiceSupported && <p className="info">Voice commands not available in this browser. Use text input instead.</p>}
+            <p>Click the camera button to begin. The scene will be automatically explained.</p>
           </div>
         )}
       </main>
 
       <footer className="app-footer">
-        <p>GuideLens v0.1.0 • Built for accessibility and safety</p>
-        <p className="sr-only">GuideLens is an AI-powered navigation assistant for blind and visually impaired users.</p>
+        <p>GuideLens v0.1.0 • Built for accessibility</p>
       </footer>
     </div>
   )
