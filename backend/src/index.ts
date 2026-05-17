@@ -12,7 +12,7 @@ import detectRoutes from './routes/detect'
 dotenv.config()
 
 const app = express()
-const PORT = process.env.BACKEND_PORT || 5000
+const PORT = process.env.PORT || process.env.BACKEND_PORT || 5000
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 // Middleware
